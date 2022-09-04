@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gelmiş Geçmiş En İyi Yılan Oyunu</title>
+  <style>
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background: #256398;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  canvas {
+    border: 5px solid red;
+  }
+  .gameOver {
+    width: 800px;
+    height: 800px;
+    background-color: red;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: white;
+    font-family: 'Arial';
+    flex-direction: column;
+  }
+  .gameOver small {
+    font-size: 14px;
+    margin-top: 12px;
+  }
+  .gameOver .score {
+    margin-top: 32px;
+    font-size: 18px;
+  }
+  </style>
+</head>
+<body>
+<div class="gameOver" style="display: none;">
+  YOU'RE DEAD, NOOB!
+  <small>To restart, prass <b>any</b> key</small>
+  <div class="score">Here is your score noob: <span class="count">0</span></div>
+</div>
+<canvas width="800" height="800" id="game"></canvas>
+<script>
+var canvas = document.getElementById('game');
+var context = canvas.getContext('2d');
+var snakeSize = 20;
+var count = 0;
+var snake = {x: 160,
+  y: 160,
+  dx: snakeSize,
+ dy: 0,
+  cells: [],
+maxCells: 4,
+};
+var apple = {
+  x: 320, y: 320,
+};
+var isDead = false;
+var score = 0;
+
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function gameOver() {
+  new Audio('dead.mp3').play();
+  snake.x = 160;
+  snake.y = 160;
+  snake.cells = [];
+  snake.maxCells = 4;
+  snake.dx = snakeSize;
+  snake.dy = 0;
+  apple.x = getRandomInt(0, 25) * snakeSize;
+  apple.y = getRandomInt(0, 25) * snakeSize;
+  document.getElementsByClassName('count')[0].innerHTML = score;
+  isDead = true;
+  score = 0;
+}
+function startGame() {
+  snake.x = 160;
+  snake.y = 160;
+  snake.cells = [];
+  snake.maxCells = 4;
+  snake.dx = snakeSize;
+  snake.dy = 0;
+  apple.x = getRandomInt(0, 25) * snakeSize;
+  apple.y = getRandomInt(0, 25) * snakeSize;
+
+  requestAnimationFrame(loop);
+}
+
+document.onkeypress = function() {
+  if (isDead) {
+    startGame();
+  }
+
+  isDead = false;
+  document.getElementsByClassName('gameOver')[0].style.display = 'none';
+}
+function loop() {
+  if (isDead) {
+    document.getElementsByClassName('gameOver')[0].style.display = 'flex';
+  }
+  if (!isDead) {
+    requestAnimationFrame(loop);
+  }
+  
+  if (snake.x >= canvas.width || snake.x <= 0 || snake.y >= canvas.height || snake.y <= 0) {
+    gameOver();
+  }
+  if (++count < 4) {
+    return;
+  }
+  count = 0;
+  context.clearRect(0,0,canvas.width,canvas.height);
+  snake.x += snake.dx;
+  snake.y += snake.dy;
+  snake.cells.unshift({x: snake.x, y: snake.y});
+  if (snake.cells.length > snake.maxCells) {
+    snake.cells.pop();
+  }
+  context.fillStyle = 'white';
+  context.fillRect(apple.x, apple.y, snakeSize-1, snakeSize-1);
+  context.fillStyle = 'white';
+  snake.cells.forEach(function(cell, index) {
+    context.fillRect(cell.x, cell.y, snakeSize-1, snakeSize-1);  
+    if (cell.x === apple.x && cell.y === apple.y) {
+      snake.maxCells++;
+      apple.x = getRandomInt(0, 25) * snakeSize;
+      apple.y = getRandomInt(0, 25) * snakeSize;
+      score++;
+    }
+    for (var i = index + 1; i < snake.cells.length; i++) {
+      if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
+        gameOver();
+      }
+    }
+  });
+}
+document.addEventListener('keydown', function(e) {
+  if (e.which === 37 && snake.dx === 0) {
+    snake.dx = -snakeSize;
+    snake.dy = 0;
+  }else if (e.which === 38 && snake.dy === 0) {
+    snake.dy = -snakeSize;
+    snake.dx = 0;
+  }else if (e.which === 39 && snake.dx === 0) {
+    snake.dx = snakeSize;
+    snake.dy = 0;
+  }else if (e.which === 40 && snake.dy === 0) {
+    snake.dy = snakeSize;
+    snake.dx = 0;
+  }
+});
+
+startGame();  
+</script>
+</body>
+</html>
